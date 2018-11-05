@@ -2,18 +2,31 @@ const { ipcRenderer } = require("electron")
 
 const buttonOK = document.querySelector("#ok")
 const buttonCancel = document.querySelector("#cancel")
-const dataEl = document.getElementById("data")
+const dataEl = document.querySelector(".data")
 const label = document.querySelector("#label")
+const link = document.querySelector("link")
+
+const promptError = e => {
+  if (e instanceof Error) {
+    e = e.message
+  }
+  ipcRenderer.sendSync(`prompt-error:${id}`, e)
+}
 
 let id = null,
   options
 
 document.addEventListener("DOMContentLoaded", event => {
   id = document.location.hash.replace("#", "")
+
   try {
     options = JSON.parse(ipcRenderer.sendSync(`prompt-get-options:${id}`))
   } catch (e) {
     return promptError(e)
+  }
+
+  if (options.css) {
+    link.setAttribute("href", options.css)
   }
 
   dataEl.setAttribute("type", options.type || "text") // can be "hidden"?

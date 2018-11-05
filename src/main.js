@@ -1,6 +1,7 @@
 const { BrowserWindow, ipcMain } = require("electron")
 const path = require("path")
 const url = require("url")
+const fs = require("fs")
 
 const prompt = (options, parent) =>
   new Promise((resolve, reject) => {
@@ -8,6 +9,7 @@ const prompt = (options, parent) =>
 
     const opts = Object.assign(
       {
+        css: null,
         width: 370,
         height: 130,
         resizable: false,
@@ -33,14 +35,30 @@ const prompt = (options, parent) =>
       useContentSize: true,
       modal: Boolean(parent),
       title: opts.title,
-      icon: opts.icon
+      icon: opts.icon,
+      show: false
     })
+
+    if (options.css) {
+      try {
+        let css = fs.readFileSync(options.css)
+        promptWindow.webContents.insertCSS(css)
+      } catch (e) {
+        //
+      }
+    }
 
     const cleanup = () => {
       if (promptWindow) {
         promptWindow.close()
         promptWindow = null
       }
+    }
+
+    const errorHandler = (event, message) => {
+      reject(new Error(message))
+      event.returnValue = null
+      cleanup()
     }
 
     const getOptionsHandler = event => {
@@ -55,11 +73,12 @@ const prompt = (options, parent) =>
 
     promptWindow.setMenu(null)
 
+    ipcMain.on(`prompt-error:${id}`, errorHandler)
     ipcMain.on(`prompt-get-options:${id}`, getOptionsHandler)
-
     ipcMain.on(`prompt-post-data:${id}`, postDataHandler)
 
     promptWindow.on("closed", () => {
+      ipcMain.removeListener(`prompt-error:${id}`, errorHandler)
       ipcMain.removeListener(`prompt-get-options:${id}`, getOptionsHandler)
       ipcMain.removeListener(`prompt-post-data:${id}`, postDataHandler)
       resolve(null)
@@ -77,6 +96,10 @@ const prompt = (options, parent) =>
     // promptWindow.loadFile(`prompt.html#${id}`)
 
     // promptWindow.webContents.openDevTools()
+
+    promptWindow.on("ready-to-show", () => {
+      promptWindow.show()
+    })
   })
 
 module.exports = prompt
