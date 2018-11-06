@@ -13,7 +13,6 @@ const prompt = (options, parent) =>
         width: 370,
         height: 130,
         resizable: false,
-        // resizable: true,
         title: "Prompt",
         label: "Please input a value:",
         alwaysOnTop: true,
@@ -38,15 +37,6 @@ const prompt = (options, parent) =>
       icon: opts.icon,
       show: false
     })
-
-    if (options.css) {
-      try {
-        let css = fs.readFileSync(options.css)
-        promptWindow.webContents.insertCSS(css)
-      } catch (e) {
-        //
-      }
-    }
 
     const cleanup = () => {
       if (promptWindow) {
@@ -93,11 +83,17 @@ const prompt = (options, parent) =>
 
     promptWindow.loadURL(promptUrl)
 
-    // promptWindow.loadFile(`prompt.html#${id}`)
-
     // promptWindow.webContents.openDevTools()
 
     promptWindow.on("ready-to-show", () => {
+      if (options.css) {
+        try {
+          let css = fs.readFileSync(options.css, "utf-8")
+          promptWindow.webContents.insertCSS(css)
+        } catch (e) {
+          //
+        }
+      }
       promptWindow.show()
     })
   })

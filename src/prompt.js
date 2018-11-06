@@ -2,7 +2,7 @@ const { ipcRenderer } = require("electron")
 
 const buttonOK = document.querySelector("#ok")
 const buttonCancel = document.querySelector("#cancel")
-const dataEl = document.querySelector(".data")
+const dataEl = document.querySelector("#data")
 const label = document.querySelector("#label")
 const link = document.querySelector("link")
 
@@ -25,11 +25,7 @@ document.addEventListener("DOMContentLoaded", event => {
     return promptError(e)
   }
 
-  if (options.css) {
-    link.setAttribute("href", options.css)
-  }
-
-  dataEl.setAttribute("type", options.type || "text") // can be "hidden"?
+  dataEl.setAttribute("type", options.type || "text") // can be "password"
 
   dataEl.addEventListener("keyup", event => {
     if (event.which === 13) {
